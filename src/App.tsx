@@ -87,7 +87,11 @@ const AppContent: React.FC = () => {
             <Dashboard />
           </Layout>
         } />
-        <Route path="/pdf/:id" element={<PDFViewerPage />} />
+        <Route path="/pdf/:id" element={
+          <Layout>
+            <PDFViewerPage />
+          </Layout>
+        } />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

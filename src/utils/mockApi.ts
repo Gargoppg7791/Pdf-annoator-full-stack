@@ -202,12 +202,11 @@ export const mockHighlightAPI = {
     return { data: list };
   },
 
-  create: async (pdfId: string, payload: Omit<Highlight, 'id' | 'userId' | 'timestamp'>) => {
+  create: async (payload: Omit<Highlight, 'id' | 'userId' | 'timestamp'>) => {
     await delay(200);
     if (!currentUser) throw new Error('Unauthorized');
     const newHighlight: Highlight = {
       id: generateUUID(),
-      pdfId,
       userId: currentUser.id,
       ...payload,
       timestamp: new Date().toISOString()

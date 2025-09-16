@@ -19,12 +19,13 @@ export interface Highlight {
   pdfId: string;
   userId: string;
   pageNumber: number;
-  rect: {
+  position: {
     x: number;
     y: number;
     width: number;
     height: number;
   };
+  text: string;
   color: string;
   timestamp: string;
 }

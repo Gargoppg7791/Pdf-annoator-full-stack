@@ -123,7 +123,7 @@ const PDFList: React.FC<PDFListProps> = ({ pdfs, onDelete, onRename }) => {
                 {activeMenu === pdf.id && (
                   <div className="absolute right-0 top-8 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                     <button
-                      onClick={() => window.open(`/pdf/${pdf.id}`, '_blank')}
+                      onClick={() => window.location.href = `/pdf/${pdf.id}`}
                       className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
                     >
                       <Eye className="w-4 h-4" />
