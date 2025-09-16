@@ -154,7 +154,10 @@ const PDFList: React.FC<PDFListProps> = ({ pdfs, onDelete, onRename }) => {
             </div>
 
             <button
-              onClick={() => window.open(`/pdf/${pdf.id}`, '_blank')}
+              onClick={() => window.location.href = `/pdf/${pdf.id}`}
+                setActiveMenu(null);
+                window.location.href = `/pdf/${pdf.id}`;
+              }}
               className="w-full bg-blue-50 text-blue-600 py-2 px-3 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
             >
               Open & Annotate

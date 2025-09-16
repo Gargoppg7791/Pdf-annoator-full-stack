@@ -1,5 +1,5 @@
 import React from 'react';
-import { Palette, MousePointer } from 'lucide-react';
+import { Palette, MousePointer, Sparkles } from 'lucide-react';
 
 interface Color {
   name: string;
@@ -22,37 +22,50 @@ const ViewerControls: React.FC<ViewerControlsProps> = ({
   isSelecting
 }) => {
   return (
-    <div className="flex items-center space-x-4">
-      <div className="flex items-center space-x-2">
-        <Palette className="w-4 h-4 text-gray-600" />
-        <span className="text-sm text-gray-700">Highlight Color:</span>
-        <div className="flex space-x-1">
+    <div className="flex items-center space-x-6">
+      <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2">
+          <Palette className="w-4 h-4 text-gray-600" />
+          <span className="text-sm font-medium text-gray-700">Highlight:</span>
+        </div>
+        <div className="flex items-center space-x-2 bg-gray-50 rounded-lg p-2">
           {colors.map((color) => (
             <button
               key={color.value}
               onClick={() => onColorChange(color.value)}
-              className={`w-6 h-6 rounded-full border-2 transition-all ${
+              className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
                 selectedColor === color.value
-                  ? 'border-gray-800 scale-110'
+                  ? 'border-gray-800 scale-110 shadow-lg'
                   : 'border-gray-300 hover:border-gray-500'
               }`}
               style={{ backgroundColor: color.value }}
-              title={color.name}
+              title={`${color.name} highlight`}
             />
           ))}
         </div>
       </div>
 
+      <div className="h-6 w-px bg-gray-300"></div>
+
       <button
         onClick={onToggleSelection}
-        className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+        className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
           isSelecting
-            ? 'bg-blue-100 text-blue-700 border border-blue-300'
-            : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+            ? 'bg-blue-600 text-white shadow-lg hover:bg-blue-700'
+            : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 hover:border-gray-400'
         }`}
       >
-        <MousePointer className="w-4 h-4" />
-        <span>{isSelecting ? 'Stop Selecting' : 'Start Selecting'}</span>
+        {isSelecting ? (
+          <>
+            <Sparkles className="w-4 h-4" />
+            <span>Stop Highlighting</span>
+          </>
+        ) : (
+          <>
+            <MousePointer className="w-4 h-4" />
+            <span>Start Highlighting</span>
+          </>
+        )}
       </button>
     </div>
   );
