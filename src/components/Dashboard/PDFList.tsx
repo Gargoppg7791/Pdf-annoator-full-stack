@@ -154,7 +154,7 @@ const PDFList: React.FC<PDFListProps> = ({ pdfs, onDelete, onRename }) => {
             </div>
 
             <button
-              onClick={() => window.location.href = `/pdf/${pdf.id}`}
+              onClick={() => {
                 setActiveMenu(null);
                 window.location.href = `/pdf/${pdf.id}`;
               }}
