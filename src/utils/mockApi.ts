@@ -75,12 +75,32 @@ const readFileAsDataUrl = (file: File): Promise<string> => {
 
 export const mockAuthAPI = {
   login: async (email: string, password: string) => {
-    await delay(700);
-    const user = users.find(u => u.email === email);
-    if (!user) {
-      throw new Error('User not found');
+    await delay(500);
+    
+    // Create a default user if no users exist
+    if (users.length === 0) {
+      const defaultUser: User = {
+        id: generateUUID(),
+        email: 'test@example.com',
+        name: 'Test User'
+      };
+      users.push(defaultUser);
+      saveState();
     }
-    // NOTE: password is not validated in mock
+    
+    // Find user by email or use first user for demo
+    let user = users.find(u => u.email === email);
+    if (!user) {
+      // For demo purposes, create user if not found
+      user = {
+        id: generateUUID(),
+        email,
+        name: email.split('@')[0]
+      };
+      users.push(user);
+      saveState();
+    }
+    
     currentUser = user;
     const token = 'mock-jwt-token-' + user.id;
     localStorage.setItem(LS_TOKEN, token);
@@ -88,7 +108,7 @@ export const mockAuthAPI = {
   },
 
   register: async (name: string, email: string, password: string) => {
-    await delay(1000);
+    await delay(700);
     const existingUser = users.find(u => u.email === email);
     if (existingUser) {
       throw new Error('User already exists');
@@ -104,23 +124,31 @@ export const mockAuthAPI = {
     currentUser = newUser;
     const token = 'mock-jwt-token-' + newUser.id;
     localStorage.setItem(LS_TOKEN, token);
-    // persist users
     saveState();
     return { data: { token, user: newUser } };
   },
 
   verifyToken: async () => {
-    await delay(400);
+    await delay(200);
     const token = localStorage.getItem(LS_TOKEN);
     if (!token) {
       throw new Error('Invalid token');
     }
     const parts = token.split('-');
     const id = parts[parts.length - 1];
-    const user = users.find(u => u.id === id);
+    let user = users.find(u => u.id === id);
+    
+    // If user not found but token exists, create a default user
     if (!user) {
-      throw new Error('Invalid token');
+      user = {
+        id,
+        email: 'test@example.com',
+        name: 'Test User'
+      };
+      users.push(user);
+      saveState();
     }
+    
     currentUser = user;
     return { data: { user: currentUser } };
   }
@@ -152,7 +180,7 @@ export const mockPdfAPI = {
   },
 
   list: async () => {
-    await delay(400);
+    await delay(300);
     if (!currentUser) {
       throw new Error('Unauthorized');
     }
@@ -161,8 +189,11 @@ export const mockPdfAPI = {
   },
 
   get: async (id: string) => {
-    await delay(300);
-    const pdf = pdfs.find(p => p.id === id && p.userId === currentUser?.id);
+    await delay(200);
+    if (!currentUser) {
+      throw new Error('Unauthorized');
+    }
+    const pdf = pdfs.find(p => p.id === id && p.userId === currentUser.id);
     if (!pdf) {
       throw new Error('PDF not found');
     }
@@ -198,7 +229,7 @@ export const mockHighlightAPI = {
   list: async (pdfId: string) => {
     await delay(200);
     if (!currentUser) throw new Error('Unauthorized');
-    const list = highlights.filter(h => h.pdfId === pdfId && h.userId === currentUser?.id);
+    const list = highlights.filter(h => h.pdfId === pdfId && h.userId === currentUser.id);
     return { data: list };
   },
 

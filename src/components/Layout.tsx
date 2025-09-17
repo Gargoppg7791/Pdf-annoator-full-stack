@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FileText, LogOut, User } from 'lucide-react';
 
@@ -8,6 +9,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -15,7 +17,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <button 
-              onClick={() => window.location.href = '/'}
+              onClick={() => navigate('/')}
               className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
             >
               <div className="flex items-center justify-center w-10 h-10 bg-blue-600 rounded-lg">

@@ -22,27 +22,25 @@ const AppContent: React.FC = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
-        {authMode === 'login' ? (
-          <Login onToggleMode={() => setAuthMode('register')} />
-        ) : (
-          <Register onToggleMode={() => setAuthMode('login')} />
-        )}
-      </div>
-    );
-  }
-
   return (
     <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/pdf/:id" element={<PDFViewer />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
+      {!user ? (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+          {authMode === 'login' ? (
+            <Login onToggleMode={() => setAuthMode('register')} />
+          ) : (
+            <Register onToggleMode={() => setAuthMode('login')} />
+          )}
+        </div>
+      ) : (
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/pdf/:id" element={<PDFViewer />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Layout>
+      )}
     </Router>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PDF } from '../../types';
 import { pdfAPI } from '../../utils/api';
 import { FileText, Calendar, Trash2, Edit3, Eye, MoreVertical } from 'lucide-react';
@@ -10,6 +11,7 @@ interface PDFListProps {
 }
 
 const PDFList: React.FC<PDFListProps> = ({ pdfs, onDelete, onRename }) => {
+  const navigate = useNavigate();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -123,7 +125,10 @@ const PDFList: React.FC<PDFListProps> = ({ pdfs, onDelete, onRename }) => {
                 {activeMenu === pdf.id && (
                   <div className="absolute right-0 top-8 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                     <button
-                      onClick={() => window.location.href = `/pdf/${pdf.id}`}
+                      onClick={() => {
+                        setActiveMenu(null);
+                        navigate(`/pdf/${pdf.id}`);
+                      }}
                       className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
                     >
                       <Eye className="w-4 h-4" />
@@ -156,7 +161,7 @@ const PDFList: React.FC<PDFListProps> = ({ pdfs, onDelete, onRename }) => {
             <button
               onClick={() => {
                 setActiveMenu(null);
-                window.location.href = `/pdf/${pdf.id}`;
+                navigate(`/pdf/${pdf.id}`);
               }}
               className="w-full bg-blue-50 text-blue-600 py-2 px-3 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
             >
