@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Document, Page, pdfjs } from 'react-pdf';
 import { PDF, Highlight } from '../../types';
 import { pdfAPI, highlightAPI } from '../../utils/api';
 import ViewerControls from './ViewerControls';
 import HighlightLayer from './HighlightLayer';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, ArrowLeft, FileText } from 'lucide-react';
+
+// Configure PDF.js worker for WebContainer
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 const PDFViewer: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +19,8 @@ const PDFViewer: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState<string>('#FFFF00');
   const [isSelecting, setIsSelecting] = useState<boolean>(false);
   const [scale, setScale] = useState<number>(1.0);
+  const [numPages, setNumPages] = useState<number>(0);
+  const [pageNumber, setPageNumber] = useState<number>(1);
 
   const colors = [
     { name: 'Yellow', value: '#FFFF00' },
@@ -58,6 +64,10 @@ const PDFViewer: React.FC = () => {
     }
   };
 
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+  };
+
   const handleTextSelection = async () => {
     if (!isSelecting) return;
     
@@ -66,18 +76,20 @@ const PDFViewer: React.FC = () => {
 
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
-    const viewerRect = document.getElementById('pdf-viewer')?.getBoundingClientRect();
-
-    if (!viewerRect) return;
+    const pageElement = document.querySelector('.react-pdf__Page');
+    
+    if (!pageElement) return;
+    
+    const pageRect = pageElement.getBoundingClientRect();
 
     const highlight: Omit<Highlight, 'id' | 'timestamp'> = {
       pdfId: pdf!.id,
       userId: '',
-      pageNumber: 1, // For now, assume single page
+      pageNumber: pageNumber,
       text: selection.toString(),
       position: {
-        x: (rect.left - viewerRect.left) / scale,
-        y: (rect.top - viewerRect.top) / scale,
+        x: (rect.left - pageRect.left) / scale,
+        y: (rect.top - pageRect.top) / scale,
         width: rect.width / scale,
         height: rect.height / scale,
       },
@@ -108,6 +120,14 @@ const PDFViewer: React.FC = () => {
 
   const zoomOut = () => {
     setScale(Math.max(0.5, scale - 0.2));
+  };
+
+  const goToPrevPage = () => {
+    setPageNumber(Math.max(1, pageNumber - 1));
+  };
+
+  const goToNextPage = () => {
+    setPageNumber(Math.min(numPages, pageNumber + 1));
   };
 
   if (loading) {
@@ -142,6 +162,8 @@ const PDFViewer: React.FC = () => {
     );
   }
 
+  const currentPageHighlights = highlights.filter(h => h.pageNumber === pageNumber);
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
@@ -160,7 +182,7 @@ const PDFViewer: React.FC = () => {
               <div>
                 <h1 className="text-xl font-bold text-gray-900">{pdf.originalName}</h1>
                 <p className="text-sm text-gray-500">
-                  {Math.round(scale * 100)}% zoom
+                  Page {pageNumber} of {numPages} • {Math.round(scale * 100)}% zoom
                 </p>
               </div>
             </div>
@@ -178,7 +200,31 @@ const PDFViewer: React.FC = () => {
 
       {/* Toolbar */}
       <div className="bg-white border-b border-gray-200 px-6 py-3">
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center space-x-4">
+          {/* Page Navigation */}
+          <div className="flex items-center bg-gray-50 rounded-lg p-1">
+            <button
+              onClick={goToPrevPage}
+              disabled={pageNumber <= 1}
+              className="p-2 text-gray-700 hover:bg-white hover:shadow-sm rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            
+            <div className="px-4 py-2 text-sm font-medium text-gray-900 bg-white rounded-md shadow-sm border min-w-[100px] text-center">
+              {pageNumber} / {numPages}
+            </div>
+            
+            <button
+              onClick={goToNextPage}
+              disabled={pageNumber >= numPages}
+              className="p-2 text-gray-700 hover:bg-white hover:shadow-sm rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Zoom Controls */}
           <div className="flex items-center bg-gray-50 rounded-lg p-1">
             <button
               onClick={zoomOut}
@@ -205,38 +251,47 @@ const PDFViewer: React.FC = () => {
       <div className="flex-1 overflow-auto bg-gray-100 p-8">
         <div className="flex justify-center">
           <div 
-            id="pdf-viewer"
-            className={`relative bg-white shadow-2xl rounded-lg overflow-hidden ${
-              isSelecting ? 'cursor-text' : 'cursor-default'
-            }`}
+            className={`relative ${isSelecting ? 'cursor-text' : 'cursor-default'}`}
             onMouseUp={handleTextSelection}
-            style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}
           >
-            {pdf.dataUrl ? (
-              <div className="relative">
-                <embed
-                  src={pdf.dataUrl}
-                  type="application/pdf"
-                  width="800"
-                  height="1000"
-                  className="block"
-                />
-                <HighlightLayer
-                  highlights={highlights}
-                  onDeleteHighlight={deleteHighlight}
-                  scale={1}
-                />
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-96 bg-gray-50 w-[800px]">
-                <div className="text-center">
-                  <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">PDF preview not available</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    The PDF file exists but cannot be displayed in this viewer
-                  </p>
+            {pdf.dataUrl && (
+              <Document
+                file={pdf.dataUrl}
+                onLoadSuccess={onDocumentLoadSuccess}
+                loading={
+                  <div className="flex items-center justify-center h-96 bg-white rounded-lg shadow-lg">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600">Loading PDF...</p>
+                    </div>
+                  </div>
+                }
+                error={
+                  <div className="flex items-center justify-center h-96 bg-white rounded-lg shadow-lg">
+                    <div className="text-center">
+                      <FileText className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                      <p className="text-red-600">Failed to load PDF</p>
+                    </div>
+                  </div>
+                }
+              >
+                <div className="relative bg-white shadow-2xl rounded-lg overflow-hidden">
+                  <Page
+                    pageNumber={pageNumber}
+                    scale={scale}
+                    loading={
+                      <div className="flex items-center justify-center h-96 bg-gray-50">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      </div>
+                    }
+                  />
+                  <HighlightLayer
+                    highlights={currentPageHighlights}
+                    onDeleteHighlight={deleteHighlight}
+                    scale={scale}
+                  />
                 </div>
-              </div>
+              </Document>
             )}
           </div>
         </div>
