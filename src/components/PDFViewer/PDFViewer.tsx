@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, ArrowLeft, FileText } from 
 // Set up PDF.js worker - disable worker for WebContainer compatibility
 pdfjs.GlobalWorkerOptions.workerSrc = '';
 pdfjs.disableWorker = true;
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.js',
   import.meta.url
 ).toString();
