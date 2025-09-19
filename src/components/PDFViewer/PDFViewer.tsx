@@ -7,11 +7,9 @@ import ViewerControls from './ViewerControls';
 import HighlightLayer from './HighlightLayer';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, ArrowLeft, FileText } from 'lucide-react';
 
-// Configure PDF.js worker using local import
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.js',
-  import.meta.url
-).toString();
+// Configure PDF.js worker using Vite's ?url import
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
+pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 const PDFViewer: React.FC = () => {
   const { id } = useParams<{ id: string }>();
